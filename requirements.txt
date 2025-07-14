@@ -1,0 +1,27 @@
+# Raspberry Pi Motion Detection System - Professional Edition
+# Core dependencies for computer vision and motion detection
+
+# Computer Vision and Image Processing
+opencv-python>=4.8.0,<5.0.0
+numpy>=1.24.0,<2.0.0
+
+# System Monitoring and Performance
+psutil>=5.9.0,<6.0.0
+
+# Configuration and Data Handling
+dataclasses>=0.6; python_version < "3.7"
+
+# Optional: Enhanced Raspberry Pi Camera Support
+# Uncomment if using Raspberry Pi Camera Module v2/v3
+# picamera2>=0.3.12,<1.0.0
+
+# Optional: Enhanced Image Processing
+# Uncomment for additional image processing capabilities
+# pillow>=9.0.0,<11.0.0
+# scikit-image>=0.19.0,<1.0.0
+
+# Development and Testing (optional)
+# pytest>=7.0.0,<8.0.0
+# pytest-cov>=4.0.0,<5.0.0
+# black>=22.0.0,<24.0.0
+# flake8>=5.0.0,<7.0.0 

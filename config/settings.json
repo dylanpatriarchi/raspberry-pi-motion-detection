@@ -1,0 +1,46 @@
+{
+  "camera": {
+    "resolution": [640, 480],
+    "framerate": 30,
+    "warmup_time": 2.0,
+    "device_index": 0
+  },
+  "detection": {
+    "motion_threshold": 1000,
+    "min_area": 500,
+    "blur_kernel_size": 21,
+    "threshold_value": 25,
+    "delta_threshold": 25,
+    "dilate_iterations": 2,
+    "contour_approximation": 0.02
+  },
+  "storage": {
+    "output_directory": "data/captured_images",
+    "photo_delay": 5.0,
+    "photo_format": "jpg",
+    "photo_quality": 95,
+    "max_photos": 1000,
+    "cleanup_enabled": true
+  },
+  "display": {
+    "show_preview": true,
+    "preview_window_name": "Motion Detection",
+    "draw_contours": true,
+    "show_fps": true,
+    "preview_scale": 1.0
+  },
+  "logging": {
+    "level": "INFO",
+    "log_to_file": true,
+    "log_file": "logs/motion_detection.log",
+    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "max_file_size": 10485760,
+    "backup_count": 5
+  },
+  "system": {
+    "debug_mode": false,
+    "performance_monitoring": false,
+    "auto_cleanup": true,
+    "graceful_shutdown_timeout": 10.0
+  }
+} 
