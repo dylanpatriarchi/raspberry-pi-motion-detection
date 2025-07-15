@@ -1,5 +1,5 @@
 # Raspberry Pi Motion Detection System
-## Professional Edition
+## First Edition
 
 A professional-grade motion detection system for Raspberry Pi using OpenCV and advanced computer vision techniques. This system monitors scenes in real-time and automatically captures photos when significant motion is detected.
 
@@ -44,7 +44,7 @@ A professional-grade motion detection system for Raspberry Pi using OpenCV and a
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/raspberry-pi-motion-detection.git
+git clone https://github.com/dylanpatriarchi/raspberry-pi-motion-detection.git
 cd raspberry-pi-motion-detection
 
 # Install dependencies
