@@ -8,7 +8,12 @@ import os
 from typing import Dict, Any, Optional
 import logging
 
-from .defaults import create_default_config, VALID_CAMERA_BACKENDS, VALID_NOTIFIERS
+from .defaults import (
+    create_default_config,
+    VALID_CAMERA_BACKENDS,
+    VALID_NOTIFIERS,
+    VALID_VIDEO_FORMATS,
+)
 from ..utils.schedule import parse_hhmm
 
 
@@ -171,6 +176,15 @@ class Settings:
 
             if self.storage.photo_quality < 1 or self.storage.photo_quality > 100:
                 raise ValueError("Photo quality must be between 1 and 100")
+
+            if self.storage.video_format not in VALID_VIDEO_FORMATS:
+                raise ValueError(f"Video format must be one of {list(VALID_VIDEO_FORMATS)}")
+
+            if self.storage.record_video:
+                if self.storage.video_duration <= 0:
+                    raise ValueError("Video duration must be positive")
+                if self.storage.video_fps <= 0:
+                    raise ValueError("Video fps must be positive")
 
             # Validate logging settings
             valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]

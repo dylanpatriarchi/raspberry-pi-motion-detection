@@ -58,7 +58,7 @@ def test_webhook_posts_json_payload(monkeypatch):
     assert ok is True
     assert calls["url"] == "https://example.test/hook"
     body = json.loads(calls["data"].decode())
-    assert body == {"title": "Motion", "message": "Area: 1200"}
+    assert body == {"title": "Motion", "message": "Area: 1200", "snapshot": None}
 
 
 def test_webhook_returns_false_on_error_status(monkeypatch):
@@ -72,6 +72,42 @@ def test_telegram_targets_bot_api(monkeypatch):
     assert ok is True
     assert "api.telegram.org/botBOTTOKEN/sendMessage" in calls["url"]
     assert b"chat_id=12345" in calls["data"]
+
+
+def test_telegram_send_photo_uses_multipart(monkeypatch, tmp_path):
+    image = tmp_path / "shot.jpg"
+    image.write_bytes(b"\xff\xd8\xff\xe0FAKEJPEGDATA")
+    calls = _capture_urlopen(monkeypatch)
+
+    ok = TelegramNotifier("TOK", "42").send("Motion", "hi", str(image))
+
+    assert ok is True
+    assert "sendPhoto" in calls["url"]
+    assert b"FAKEJPEGDATA" in calls["data"]
+    assert b'name="photo"; filename="shot.jpg"' in calls["data"]
+
+
+def test_telegram_falls_back_to_text_when_image_missing(monkeypatch):
+    calls = _capture_urlopen(monkeypatch)
+    TelegramNotifier("TOK", "42").send("Motion", "hi", "/nonexistent/none.jpg")
+    assert "sendMessage" in calls["url"]
+
+
+def test_manager_omits_snapshot_when_disabled(monkeypatch, tmp_path):
+    image = tmp_path / "shot.jpg"
+    image.write_bytes(b"data")
+    calls = _capture_urlopen(monkeypatch)
+    cfg = NotificationConfig(
+        enabled=True,
+        backend="telegram",
+        telegram_bot_token="TOK",
+        telegram_chat_id="42",
+        include_snapshot=False,
+        min_interval=0,
+    )
+    NotificationManager(cfg).notify_motion(1000, 2, str(image))
+    # Snapshot suppressed -> text endpoint, not sendPhoto.
+    assert "sendMessage" in calls["url"]
 
 
 def test_manager_disabled_never_sends(monkeypatch):
