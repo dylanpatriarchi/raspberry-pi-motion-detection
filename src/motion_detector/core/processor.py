@@ -33,6 +33,10 @@ class ImageProcessor:
         self.background_frame: Optional[np.ndarray] = None
         self.background_initialized = False
 
+        # Region-of-interest mask, built lazily and cached per frame shape.
+        self._roi_mask: Optional[np.ndarray] = None
+        self._roi_shape: Optional[tuple] = None
+
         # Processing statistics
         self.processing_stats = {
             "frames_processed": 0,
@@ -146,6 +150,11 @@ class ImageProcessor:
             # Dilate to fill holes in contours
             dilated = cv2.dilate(thresh, None, iterations=self.config.dilate_iterations)
 
+            # Restrict detection to the configured regions of interest.
+            roi_mask = self._get_roi_mask(dilated.shape)
+            if roi_mask is not None:
+                dilated = cv2.bitwise_and(dilated, roi_mask)
+
             # Find contours
             contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -188,6 +197,43 @@ class ImageProcessor:
         except Exception as e:
             self.logger.error(f"Motion detection failed: {e}")
             return False, [], np.zeros_like(frame[:, :, 0])
+
+    def _get_roi_mask(self, shape: tuple) -> Optional[np.ndarray]:
+        """Return a binary mask for the configured regions, or None.
+
+        The mask is built once per frame shape and cached. When no regions are
+        configured, None is returned so the whole frame is used.
+
+        Args:
+            shape: (height, width) of the binary motion image.
+
+        Returns:
+            Optional[np.ndarray]: uint8 mask (255 inside regions) or None.
+        """
+        regions = getattr(self.config, "regions", None) or []
+        if not regions:
+            return None
+
+        if self._roi_mask is not None and self._roi_shape == shape:
+            return self._roi_mask
+
+        height, width = shape[:2]
+        mask = np.zeros((height, width), dtype=np.uint8)
+        for region in regions:
+            try:
+                x, y, w, h = (int(v) for v in region)
+            except (TypeError, ValueError):
+                self.logger.warning(f"Ignoring malformed ROI region: {region}")
+                continue
+            # Clip the rectangle to the frame bounds.
+            x0, y0 = max(0, x), max(0, y)
+            x1, y1 = min(width, x + w), min(height, y + h)
+            if x1 > x0 and y1 > y0:
+                mask[y0:y1, x0:x1] = 255
+
+        self._roi_mask = mask
+        self._roi_shape = shape
+        return mask
 
     def draw_contours(self, frame: np.ndarray, contours: List[np.ndarray]) -> np.ndarray:
         """

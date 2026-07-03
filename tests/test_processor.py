@@ -88,6 +88,37 @@ def test_optimize_for_raspberry_pi_reduces_cost(processor):
     assert processor.config.dilate_iterations == 1
 
 
+def test_no_regions_means_full_frame(processor):
+    assert processor._get_roi_mask((240, 320)) is None
+
+
+def test_roi_covering_motion_still_detects(processor):
+    # Region covers the moving block (x 80-220, y 60-180).
+    processor.config.regions = [[70, 50, 170, 150]]
+    processor.initialize_background(_background())
+    detected, contours, _ = processor.detect_motion(_frame_with_motion())
+    assert detected is True
+    assert len(contours) >= 1
+
+
+def test_roi_excluding_motion_suppresses_detection(processor):
+    # Region in a corner far from the moving block.
+    processor.config.regions = [[0, 0, 40, 40]]
+    processor.initialize_background(_background())
+    detected, contours, _ = processor.detect_motion(_frame_with_motion())
+    assert detected is False
+    assert contours == []
+
+
+def test_roi_mask_is_clipped_and_cached(processor):
+    processor.config.regions = [[300, 220, 999, 999]]  # extends past bounds
+    mask = processor._get_roi_mask((240, 320))
+    assert mask.shape == (240, 320)
+    assert mask[230, 310] == 255  # inside the clipped region
+    # Second call returns the cached instance.
+    assert processor._get_roi_mask((240, 320)) is mask
+
+
 def test_draw_contours_and_overlay_preserve_shape(processor):
     processor.initialize_background(_background())
     frame = _frame_with_motion()

@@ -11,7 +11,8 @@
     "min_area": 500,
     "blur_kernel_size": 21,
     "delta_threshold": 25,
-    "dilate_iterations": 2
+    "dilate_iterations": 2,
+    "regions": []
   },
   "storage": {
     "output_directory": "data/captured_images",

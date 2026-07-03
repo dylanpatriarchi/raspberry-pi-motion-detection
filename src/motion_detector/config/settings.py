@@ -158,6 +158,12 @@ class Settings:
             if self.detection.min_area <= 0:
                 raise ValueError("Minimum area must be positive")
 
+            for region in self.detection.regions:
+                if len(region) != 4:
+                    raise ValueError("Each detection region must be [x, y, width, height]")
+                if region[2] <= 0 or region[3] <= 0:
+                    raise ValueError("Detection region width and height must be positive")
+
             # Validate storage settings
             if self.storage.photo_delay < 0:
                 raise ValueError("Photo delay cannot be negative")

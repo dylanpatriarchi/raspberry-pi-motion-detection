@@ -3,8 +3,8 @@ Default Configuration
 Default settings for the motion detection system.
 """
 
-from dataclasses import dataclass
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 # Capture backends recognized by config validation and backend selection.
 VALID_CAMERA_BACKENDS = ("auto", "opencv", "picamera2")
@@ -35,6 +35,10 @@ class DetectionConfig:
     blur_kernel_size: int = 21
     delta_threshold: int = 25
     dilate_iterations: int = 2
+    # Regions of interest as [x, y, width, height] rectangles in pixels.
+    # When non-empty, motion is only detected inside these regions; empty
+    # means the whole frame is monitored.
+    regions: List[List[int]] = field(default_factory=list)
 
 
 @dataclass
