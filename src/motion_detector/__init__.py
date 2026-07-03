@@ -3,6 +3,11 @@ Motion Detector Package
 Core components for motion detection system.
 """
 
+__version__ = "1.0.0"
+__author__ = "Dylan Patriarchi"
+__email__ = "dylanpatri04@gmail.com"
+__description__ = "Professional motion detection system for Raspberry Pi"
+
 from .core.detector import MotionDetector
 from .core.camera import CameraManager
 from .core.processor import ImageProcessor

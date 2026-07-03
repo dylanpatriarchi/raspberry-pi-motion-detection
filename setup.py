@@ -6,35 +6,75 @@ Professional motion detection system for Raspberry Pi using OpenCV.
 
 from setuptools import setup, find_packages
 import os
+import re
 import sys
 
-# Read version from __init__.py
-version = {}
-with open(os.path.join("src", "__init__.py")) as f:
-    exec(f.read(), version)
+
+def read_metadata():
+    """Parse dunder metadata from the package __init__ without importing it.
+
+    Importing the package would pull in cv2/numpy, which are not available at
+    build time, so the values are read with a simple regex instead.
+    """
+    init_path = os.path.join("src", "motion_detector", "__init__.py")
+    with open(init_path, "r", encoding="utf-8") as fh:
+        contents = fh.read()
+
+    def find(name, default):
+        match = re.search(rf'^{name}\s*=\s*["\']([^"\']*)["\']', contents, re.MULTILINE)
+        return match.group(1) if match else default
+
+    return {
+        "__version__": find("__version__", "1.0.0"),
+        "__author__": find("__author__", "Dylan Patriarchi"),
+        "__email__": find("__email__", "dylanpatri04@gmail.com"),
+        "__description__": find(
+            "__description__", "Professional motion detection system for Raspberry Pi"
+        ),
+    }
+
+
+version = read_metadata()
 
 # Read long description from README
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+try:
+    with open("README.md", "r", encoding="utf-8") as fh:
+        long_description = fh.read()
+except FileNotFoundError:
+    long_description = read_metadata()["__description__"]
 
-# Read requirements
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+# Core runtime dependencies. Kept in sync with requirements.txt, which is
+# shipped in the sdist (see MANIFEST.in); fall back to this list if the file
+# is unavailable at build time.
+_CORE_REQUIREMENTS = [
+    "opencv-python>=4.8.0,<5.0.0",
+    "numpy>=1.24.0,<2.0.0",
+    "psutil>=5.9.0,<6.0.0",
+]
+try:
+    with open("requirements.txt", "r", encoding="utf-8") as fh:
+        requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+except FileNotFoundError:
+    requirements = list(_CORE_REQUIREMENTS)
 
 # Platform-specific requirements
 platform_requirements = []
 if sys.platform.startswith("linux"):
     # Additional Linux-specific packages
-    platform_requirements.extend([
-        "RPi.GPIO; platform_machine=='armv7l'",  # Raspberry Pi GPIO
-    ])
+    platform_requirements.extend(
+        [
+            "RPi.GPIO; platform_machine=='armv7l'",  # Raspberry Pi GPIO
+        ]
+    )
 
 setup(
     name="raspberry-pi-motion-detection",
     version=version.get("__version__", "1.0.0"),
     author=version.get("__author__", "Dylan Patriarchi"),
     author_email=version.get("__email__", "dylanpatri04@gmail.com"),
-    description=version.get("__description__", "Professional motion detection system for Raspberry Pi"),
+    description=version.get(
+        "__description__", "Professional motion detection system for Raspberry Pi"
+    ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dylanpatriarchi/raspberry-pi-motion-detection",
@@ -121,4 +161,4 @@ setup(
         "camera",
         "image-processing",
     ],
-) 
+)

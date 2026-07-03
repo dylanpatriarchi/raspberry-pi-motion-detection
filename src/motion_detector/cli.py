@@ -6,11 +6,10 @@ Entry point and argument parsing for the motion detection system.
 import argparse
 import sys
 
+from . import __version__
 from .core.detector import MotionDetector
 from .utils.validators import run_system_diagnostics
 from .utils.logger import setup_logger
-
-__version__ = "1.0.0"
 
 
 def create_argument_parser() -> argparse.ArgumentParser:

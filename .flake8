@@ -13,3 +13,5 @@ exclude =
 per-file-ignores =
     # main.py must adjust sys.path before importing the package.
     main.py: E402
+    # __init__ exposes version dunders before re-exporting the public API.
+    src/motion_detector/__init__.py: E402
