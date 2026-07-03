@@ -59,27 +59,35 @@ class FileManager:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds
         return f"{prefix}_{timestamp}.{extension}"
     
-    def save_image(self, image_data, filename: Optional[str] = None) -> Tuple[str, int]:
+    def save_image(
+        self,
+        image_data,
+        filename: Optional[str] = None,
+        quality: Optional[int] = None,
+    ) -> Tuple[str, int]:
         """
         Save image data to file.
-        
+
         Args:
             image_data: Image data to save
             filename: Optional filename (generated if not provided)
-        
+            quality: Optional encode quality (1-100). Applied as JPEG quality
+                for .jpg/.jpeg files and mapped to PNG compression otherwise.
+
         Returns:
             Tuple[str, int]: (filepath, file_size)
         """
         if filename is None:
             filename = self.generate_filename()
-        
+
         filepath = self.base_directory / filename
-        
+
         try:
             # Save image (assuming OpenCV format)
             import cv2
-            success = cv2.imwrite(str(filepath), image_data)
-            
+            encode_params = self._build_encode_params(filepath.suffix, quality)
+            success = cv2.imwrite(str(filepath), image_data, encode_params)
+
             if not success:
                 raise RuntimeError("Failed to save image")
             
@@ -91,7 +99,41 @@ class FileManager:
         except Exception as e:
             self.logger.error(f"Failed to save image {filepath}: {e}")
             raise
-    
+
+    def _build_encode_params(self, suffix: str, quality: Optional[int]) -> list:
+        """
+        Build OpenCV imwrite encode parameters for the given file type.
+
+        Args:
+            suffix: File suffix including the dot (e.g. ".jpg").
+            quality: Encode quality 1-100, or None to use the codec default.
+
+        Returns:
+            list: Flat list of cv2.IMWRITE_* flag/value pairs (empty if no
+            quality was requested or the format is not parameterizable).
+        """
+        if quality is None:
+            return []
+
+        import cv2
+
+        # Clamp to the valid range rather than letting a bad config value
+        # produce an unexpected encode result.
+        quality = max(1, min(100, int(quality)))
+        ext = suffix.lower()
+
+        if ext in (".jpg", ".jpeg"):
+            return [cv2.IMWRITE_JPEG_QUALITY, quality]
+        if ext == ".png":
+            # PNG uses 0-9 compression (higher = smaller). Map high quality to
+            # low compression so the parameter still has an intuitive meaning.
+            compression = round((100 - quality) * 9 / 100)
+            return [cv2.IMWRITE_PNG_COMPRESSION, compression]
+        if ext in (".webp",):
+            return [cv2.IMWRITE_WEBP_QUALITY, quality]
+
+        return []
+
     def cleanup_old_files(self, max_files: int = 1000, max_age_days: int = 30) -> int:
         """
         Clean up old files based on count and age.

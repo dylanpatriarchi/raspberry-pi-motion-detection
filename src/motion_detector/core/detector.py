@@ -252,7 +252,9 @@ class MotionDetector:
             
             # Save photo
             filename = self.file_manager.generate_filename("motion", self.settings.storage.photo_format)
-            filepath, file_size = self.file_manager.save_image(frame, filename)
+            filepath, file_size = self.file_manager.save_image(
+                frame, filename, quality=self.settings.storage.photo_quality
+            )
             
             # Log photo saved
             self.motion_logger.log_photo_saved(filepath, file_size)
