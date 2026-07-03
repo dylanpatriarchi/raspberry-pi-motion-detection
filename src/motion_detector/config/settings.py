@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import logging
 
-from .defaults import DEFAULT_CONFIG, CameraConfig, DetectionConfig, StorageConfig, DisplayConfig, LoggingConfig, SystemConfig
+from .defaults import create_default_config
 
 
 class Settings:
@@ -27,16 +27,23 @@ class Settings:
         self.config_file = config_file or "config/settings.json"
         self.logger = logging.getLogger(__name__)
         
-        # Load default configuration
-        self.camera = DEFAULT_CONFIG['camera']
-        self.detection = DEFAULT_CONFIG['detection']
-        self.storage = DEFAULT_CONFIG['storage']
-        self.display = DEFAULT_CONFIG['display']
-        self.logging = DEFAULT_CONFIG['logging']
-        self.system = DEFAULT_CONFIG['system']
-        
+        # Load a fresh set of default configuration objects. Using a factory
+        # (instead of shared module-level instances) ensures each Settings
+        # object owns its own config and never mutates global state.
+        self._load_defaults()
+
         # Load user configuration if exists
         self.load_config()
+
+    def _load_defaults(self) -> None:
+        """Assign a fresh set of default config objects to this instance."""
+        defaults = create_default_config()
+        self.camera = defaults['camera']
+        self.detection = defaults['detection']
+        self.storage = defaults['storage']
+        self.display = defaults['display']
+        self.logging = defaults['logging']
+        self.system = defaults['system']
     
     def load_config(self) -> None:
         """Load configuration from file."""
@@ -50,6 +57,12 @@ class Settings:
             
             # Update configurations with loaded data
             self._update_from_dict(config_data)
+
+            # JSON has no tuple type, so a resolution like [640, 480] loads as a
+            # list. Normalize to a tuple for consistency with the defaults.
+            if isinstance(self.camera.resolution, list):
+                self.camera.resolution = tuple(self.camera.resolution)
+
             self.logger.info(f"Configuration loaded from {self.config_file}")
             
         except Exception as e:
@@ -159,13 +172,7 @@ class Settings:
     
     def reset_to_defaults(self) -> None:
         """Reset configuration to default values."""
-        self.camera = DEFAULT_CONFIG['camera']
-        self.detection = DEFAULT_CONFIG['detection']
-        self.storage = DEFAULT_CONFIG['storage']
-        self.display = DEFAULT_CONFIG['display']
-        self.logging = DEFAULT_CONFIG['logging']
-        self.system = DEFAULT_CONFIG['system']
-        
+        self._load_defaults()
         self.logger.info("Configuration reset to defaults")
     
     def get_summary(self) -> str:

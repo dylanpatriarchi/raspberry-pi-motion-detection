@@ -69,11 +69,27 @@ class SystemConfig:
     graceful_shutdown_timeout: float = 10.0
 
 
-DEFAULT_CONFIG = {
-    'camera': CameraConfig(),
-    'detection': DetectionConfig(),
-    'storage': StorageConfig(),
-    'display': DisplayConfig(),
-    'logging': LoggingConfig(),
-    'system': SystemConfig()
-} 
+def create_default_config() -> dict:
+    """Build a fresh set of default configuration objects.
+
+    Each call returns brand-new dataclass instances so that mutating one
+    ``Settings`` object (e.g. applying Raspberry Pi optimizations or loading a
+    config file) never leaks into another instance or into the module-level
+    defaults.
+
+    Returns:
+        dict: Mapping of section name to a fresh config dataclass instance.
+    """
+    return {
+        'camera': CameraConfig(),
+        'detection': DetectionConfig(),
+        'storage': StorageConfig(),
+        'display': DisplayConfig(),
+        'logging': LoggingConfig(),
+        'system': SystemConfig(),
+    }
+
+
+# Backwards-compatible module-level defaults. Treat as read-only: use
+# create_default_config() whenever a mutable copy is required.
+DEFAULT_CONFIG = create_default_config() 
