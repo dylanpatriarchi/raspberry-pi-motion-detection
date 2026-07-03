@@ -3,7 +3,7 @@
 A professional-grade motion detection system for Raspberry Pi using OpenCV and advanced computer vision techniques. This system monitors scenes in real-time and automatically captures photos when significant motion is detected.
 
 [![CI](https://github.com/dylanpatriarchi/raspberry-pi-motion-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/dylanpatriarchi/raspberry-pi-motion-detection/actions/workflows/ci.yml)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![OpenCV](https://img.shields.io/badge/opencv-4.8+-green.svg)](https://opencv.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Raspberry Pi](https://img.shields.io/badge/platform-Raspberry%20Pi-red.svg)](https://www.raspberrypi.org/)
@@ -33,7 +33,7 @@ A professional-grade motion detection system for Raspberry Pi using OpenCV and a
 
 ### Software
 - Raspberry Pi OS (Bullseye or newer)
-- Python 3.7+
+- Python 3.10+
 - OpenCV 4.8+
 - 512MB+ available RAM
 - 1GB+ free disk space
