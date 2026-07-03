@@ -12,6 +12,9 @@ VALID_CAMERA_BACKENDS = ("auto", "opencv", "picamera2")
 # Notification delivery backends recognized by config validation.
 VALID_NOTIFIERS = ("none", "webhook", "telegram")
 
+# Motion detection algorithms recognized by config validation.
+VALID_DETECTION_ALGORITHMS = ("frame_diff", "mog2", "knn")
+
 
 @dataclass
 class CameraConfig:
@@ -30,6 +33,9 @@ class CameraConfig:
 class DetectionConfig:
     """Motion detection configuration settings."""
 
+    # Detection algorithm: "frame_diff" (running-average difference),
+    # "mog2", or "knn" (OpenCV adaptive background subtractors).
+    algorithm: str = "frame_diff"
     motion_threshold: int = 1000
     min_area: int = 500
     blur_kernel_size: int = 21

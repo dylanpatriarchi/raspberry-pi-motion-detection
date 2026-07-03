@@ -88,6 +88,38 @@ def test_optimize_for_raspberry_pi_reduces_cost(processor):
     assert processor.config.dilate_iterations == 1
 
 
+def _subtractor_processor(algorithm):
+    config = create_default_config()["detection"]
+    config.algorithm = algorithm
+    return ImageProcessor(config)
+
+
+@pytest.mark.parametrize("algorithm", ["mog2", "knn"])
+def test_subtractor_detects_motion(algorithm):
+    processor = _subtractor_processor(algorithm)
+    assert processor._bg_subtractor is not None
+
+    # Let the subtractor learn the static background for several frames.
+    for _ in range(15):
+        processor.detect_motion(_background())
+
+    detected, contours, _ = processor.detect_motion(_frame_with_motion())
+    assert detected is True
+    assert len(contours) >= 1
+
+
+@pytest.mark.parametrize("algorithm", ["mog2", "knn"])
+def test_subtractor_ignores_update_background(algorithm):
+    processor = _subtractor_processor(algorithm)
+    # update_background must be a no-op in subtractor mode (no crash, no state).
+    processor.update_background(_background())
+    assert processor.background_initialized is False
+
+
+def test_frame_diff_has_no_subtractor(processor):
+    assert processor._bg_subtractor is None
+
+
 def test_no_regions_means_full_frame(processor):
     assert processor._get_roi_mask((240, 320)) is None
 
