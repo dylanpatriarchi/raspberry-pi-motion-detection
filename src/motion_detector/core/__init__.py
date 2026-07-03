@@ -7,4 +7,4 @@ from .detector import MotionDetector
 from .camera import CameraManager
 from .processor import ImageProcessor
 
-__all__ = ['MotionDetector', 'CameraManager', 'ImageProcessor'] 
+__all__ = ["MotionDetector", "CameraManager", "ImageProcessor"]

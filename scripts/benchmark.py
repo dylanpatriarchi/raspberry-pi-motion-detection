@@ -63,9 +63,7 @@ def _time_calls(fn, iterations: int) -> float:
     return (elapsed / iterations) * 1000.0
 
 
-def benchmark_resolution(
-    width: int, height: int, iterations: int, optimize_pi: bool
-) -> dict:
+def benchmark_resolution(width: int, height: int, iterations: int, optimize_pi: bool) -> dict:
     """Benchmark the pipeline at a single resolution."""
     config = create_default_config()["detection"]
     processor = ImageProcessor(config, _silent_logger())
@@ -125,11 +123,17 @@ def print_table(title: str, rows: List[dict]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Benchmark the motion detection pipeline")
     parser.add_argument(
-        "--iterations", "-n", type=int, default=300,
+        "--iterations",
+        "-n",
+        type=int,
+        default=300,
         help="Timed iterations per resolution (default: 300)",
     )
     parser.add_argument(
-        "--resolutions", "-r", nargs="+", metavar="WxH",
+        "--resolutions",
+        "-r",
+        nargs="+",
+        metavar="WxH",
         help="Resolutions to test, e.g. 320x240 640x480 (default: 320x240 640x480 1280x720)",
     )
     args = parser.parse_args()
@@ -139,8 +143,12 @@ def main() -> int:
     print("⚡ Motion Detection Pipeline Benchmark")
     print(f"   Iterations per resolution: {args.iterations}")
 
-    baseline = [benchmark_resolution(w, h, args.iterations, optimize_pi=False) for w, h in resolutions]
-    optimized = [benchmark_resolution(w, h, args.iterations, optimize_pi=True) for w, h in resolutions]
+    baseline = [
+        benchmark_resolution(w, h, args.iterations, optimize_pi=False) for w, h in resolutions
+    ]
+    optimized = [
+        benchmark_resolution(w, h, args.iterations, optimize_pi=True) for w, h in resolutions
+    ]
 
     print_table("Baseline configuration", baseline)
     print_table("Raspberry Pi optimized", optimized)

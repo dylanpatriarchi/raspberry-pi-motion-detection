@@ -31,38 +31,31 @@ Interactive Controls (when preview is enabled):
   q - Quit application
   r - Reset background frame
   s - Save manual photo
-        """
+        """,
     )
 
     parser.add_argument(
-        '--config', '-c',
+        "--config",
+        "-c",
         type=str,
-        help='Path to configuration file (default: config/settings.json)'
+        help="Path to configuration file (default: config/settings.json)",
     )
 
     parser.add_argument(
-        '--debug', '-d',
-        action='store_true',
-        help='Enable debug mode with verbose logging'
+        "--debug", "-d", action="store_true", help="Enable debug mode with verbose logging"
     )
 
     parser.add_argument(
-        '--no-preview',
-        action='store_true',
-        help='Disable preview window (useful for headless operation)'
+        "--no-preview",
+        action="store_true",
+        help="Disable preview window (useful for headless operation)",
     )
 
     parser.add_argument(
-        '--diagnostics',
-        action='store_true',
-        help='Run system diagnostics and exit'
+        "--diagnostics", action="store_true", help="Run system diagnostics and exit"
     )
 
-    parser.add_argument(
-        '--version', '-v',
-        action='version',
-        version=f'%(prog)s {__version__}'
-    )
+    parser.add_argument("--version", "-v", action="version", version=f"%(prog)s {__version__}")
 
     return parser
 
@@ -80,7 +73,7 @@ def run_diagnostics() -> bool:
     results = run_system_diagnostics(logger)
 
     print("\n📊 System Information:")
-    sys_info = results.get('system_info', {})
+    sys_info = results.get("system_info", {})
     print(f"  Platform: {sys_info.get('platform', 'Unknown')}")
     print(f"  Architecture: {sys_info.get('machine', 'Unknown')}")
     print(f"  Python Version: {sys_info.get('python_version', 'Unknown')}")
@@ -89,24 +82,26 @@ def run_diagnostics() -> bool:
 
     print("\n🔧 Component Status:")
     print(f"  OpenCV: {'✅ Available' if results.get('opencv_available') else '❌ Not Available'}")
-    if results.get('opencv_version'):
+    if results.get("opencv_version"):
         print(f"    Version: {results['opencv_version']}")
 
-    print(f"  Camera: {'✅ Accessible' if results.get('camera_accessible') else '❌ Not Accessible'}")
-    if results.get('camera_message'):
+    print(
+        f"  Camera: {'✅ Accessible' if results.get('camera_accessible') else '❌ Not Accessible'}"
+    )
+    if results.get("camera_message"):
         print(f"    {results['camera_message']}")
 
     print(f"  Disk Space: {'✅ OK' if results.get('disk_space_ok') else '⚠️  Low'}")
-    if results.get('disk_free_gb'):
+    if results.get("disk_free_gb"):
         print(f"    Available: {results['disk_free_gb']:.1f} GB")
 
     print(f"  Memory: {'✅ OK' if results.get('memory_ok') else '⚠️  Low'}")
-    if results.get('memory_available_mb'):
+    if results.get("memory_available_mb"):
         print(f"    Available: {results['memory_available_mb']:.0f} MB")
 
     print(f"\n🎯 System Ready: {'✅ YES' if results.get('system_ready') else '❌ NO'}")
 
-    if not results.get('system_ready'):
+    if not results.get("system_ready"):
         print("\n💡 Recommendations:")
         print("  - Install missing dependencies: pip install -r requirements.txt")
         print("  - Check camera connection and permissions")
@@ -148,8 +143,9 @@ def main() -> None:
             print("📺 Preview disabled")
 
         # Display configuration summary
+        camera_cfg = detector.settings.camera
         print("\n⚙️  Configuration Summary:")
-        print(f"  Camera: {detector.settings.camera.resolution} @ {detector.settings.camera.framerate}fps")
+        print(f"  Camera: {camera_cfg.resolution} @ {camera_cfg.framerate}fps")
         print(f"  Motion Threshold: {detector.settings.detection.motion_threshold}")
         print(f"  Output Directory: {detector.settings.storage.output_directory}")
         print(f"  Photo Delay: {detector.settings.storage.photo_delay}s")
@@ -180,6 +176,7 @@ def main() -> None:
         print(f"\n❌ Error: {e}")
         if args.debug:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

@@ -10,6 +10,7 @@ from typing import Tuple
 @dataclass
 class CameraConfig:
     """Camera configuration settings."""
+
     resolution: Tuple[int, int] = (640, 480)
     framerate: int = 30
     warmup_time: float = 2.0
@@ -19,6 +20,7 @@ class CameraConfig:
 @dataclass
 class DetectionConfig:
     """Motion detection configuration settings."""
+
     motion_threshold: int = 1000
     min_area: int = 500
     blur_kernel_size: int = 21
@@ -31,6 +33,7 @@ class DetectionConfig:
 @dataclass
 class StorageConfig:
     """Photo storage configuration settings."""
+
     output_directory: str = "data/captured_images"
     photo_delay: float = 5.0
     photo_format: str = "jpg"
@@ -42,6 +45,7 @@ class StorageConfig:
 @dataclass
 class DisplayConfig:
     """Display and preview configuration settings."""
+
     show_preview: bool = True
     preview_window_name: str = "Motion Detection"
     draw_contours: bool = True
@@ -52,6 +56,7 @@ class DisplayConfig:
 @dataclass
 class LoggingConfig:
     """Logging configuration settings."""
+
     level: str = "INFO"
     log_to_file: bool = True
     log_file: str = "logs/motion_detection.log"
@@ -63,6 +68,7 @@ class LoggingConfig:
 @dataclass
 class SystemConfig:
     """System-wide configuration settings."""
+
     debug_mode: bool = False
     performance_monitoring: bool = False
     auto_cleanup: bool = True
@@ -81,15 +87,15 @@ def create_default_config() -> dict:
         dict: Mapping of section name to a fresh config dataclass instance.
     """
     return {
-        'camera': CameraConfig(),
-        'detection': DetectionConfig(),
-        'storage': StorageConfig(),
-        'display': DisplayConfig(),
-        'logging': LoggingConfig(),
-        'system': SystemConfig(),
+        "camera": CameraConfig(),
+        "detection": DetectionConfig(),
+        "storage": StorageConfig(),
+        "display": DisplayConfig(),
+        "logging": LoggingConfig(),
+        "system": SystemConfig(),
     }
 
 
 # Backwards-compatible module-level defaults. Treat as read-only: use
 # create_default_config() whenever a mutable copy is required.
-DEFAULT_CONFIG = create_default_config() 
+DEFAULT_CONFIG = create_default_config()

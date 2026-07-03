@@ -9,10 +9,4 @@ from .core.processor import ImageProcessor
 from .utils.logger import setup_logger
 from .config.settings import Settings
 
-__all__ = [
-    'MotionDetector',
-    'CameraManager', 
-    'ImageProcessor',
-    'setup_logger',
-    'Settings'
-] 
+__all__ = ["MotionDetector", "CameraManager", "ImageProcessor", "setup_logger", "Settings"]

@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 100
+# E203 and W503 conflict with black's formatting; ignore per black's guidance.
+extend-ignore = E203, W503
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    venv,
+    docs
+per-file-ignores =
+    # main.py must adjust sys.path before importing the package.
+    main.py: E402

@@ -11,7 +11,7 @@ import os
 import sys
 
 # Make the src/ layout importable when running directly from a checkout.
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from motion_detector.cli import main
 
