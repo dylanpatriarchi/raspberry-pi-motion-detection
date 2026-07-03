@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (black + flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install lint tools
+        run: pip install black flake8
+      - name: Check formatting (black)
+        run: black --check --line-length=100 src tests scripts main.py setup.py
+      - name: Lint (flake8)
+        run: flake8 src tests scripts main.py setup.py
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # opencv-python-headless avoids needing system GUI libraries on CI.
+          pip install numpy psutil opencv-python-headless pytest pytest-cov
+      - name: Run tests
+        run: pytest --cov=src/motion_detector --cov-report=term-missing
+      - name: Benchmark smoke test
+        run: python scripts/benchmark.py --iterations 20
+
+  build:
+    name: Build & verify package
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Build sdist and wheel
+        run: |
+          pip install build twine
+          python -m build
+      - name: Check distribution metadata
+        run: twine check dist/*
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
