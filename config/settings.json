@@ -20,7 +20,11 @@
     "photo_format": "jpg",
     "photo_quality": 95,
     "max_photos": 1000,
-    "cleanup_enabled": true
+    "cleanup_enabled": true,
+    "record_video": false,
+    "video_duration": 5.0,
+    "video_fps": 10,
+    "video_format": "avi"
   },
   "display": {
     "show_preview": true,

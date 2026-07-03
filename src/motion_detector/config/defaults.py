@@ -12,6 +12,9 @@ VALID_CAMERA_BACKENDS = ("auto", "opencv", "picamera2")
 # Notification delivery backends recognized by config validation.
 VALID_NOTIFIERS = ("none", "webhook", "telegram")
 
+# Video container formats recognized by the recorder.
+VALID_VIDEO_FORMATS = ("avi", "mp4")
+
 
 @dataclass
 class CameraConfig:
@@ -51,6 +54,11 @@ class StorageConfig:
     photo_quality: int = 95
     max_photos: int = 1000  # Maximum photos to keep
     cleanup_enabled: bool = True
+    # Record a short video clip on motion, in addition to the snapshot.
+    record_video: bool = False
+    video_duration: float = 5.0
+    video_fps: int = 10
+    video_format: str = "avi"  # "avi" (MJPG) or "mp4" (mp4v)
 
 
 @dataclass
