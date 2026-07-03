@@ -3,13 +3,12 @@ File Management Utility
 Professional file operations for motion detection system.
 """
 
-import os
 import shutil
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class FileManager:

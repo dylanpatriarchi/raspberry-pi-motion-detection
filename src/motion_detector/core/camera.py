@@ -6,7 +6,7 @@ Professional camera handling with error recovery and performance monitoring.
 import cv2
 import time
 import threading
-from typing import Optional, Tuple, Any
+from typing import Optional
 import logging
 import numpy as np
 

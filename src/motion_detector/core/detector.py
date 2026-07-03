@@ -9,14 +9,13 @@ import time
 import platform
 import cv2
 from typing import Optional
-import logging
 
 from .camera import CameraManager
 from .processor import ImageProcessor
 from ..config.settings import Settings
 from ..utils.logger import setup_logger, MotionDetectionLogger
 from ..utils.file_manager import FileManager
-from ..utils.validators import validate_config, run_system_diagnostics
+from ..utils.validators import run_system_diagnostics
 
 
 class MotionDetector:
@@ -268,8 +267,6 @@ class MotionDetector:
     def _display_preview(self, frame, contours, motion_detected) -> None:
         """Display preview window with motion detection overlay."""
         try:
-            import cv2
-            
             display_frame = frame.copy()
             
             # Draw contours if enabled
@@ -311,12 +308,10 @@ class MotionDetector:
         try:
             uptime = time.time() - self.start_time
             fps = self.frame_count / uptime if uptime > 0 else 0
-            
+
             # Get component statistics
-            camera_info = self.camera_manager.get_camera_info()
             processing_stats = self.image_processor.get_processing_statistics()
-            file_stats = self.file_manager.get_file_statistics()
-            
+
             self.logger.info(f"Performance Stats - Uptime: {uptime:.1f}s, FPS: {fps:.1f}, "
                            f"Frames: {self.frame_count}, Motion Events: {processing_stats.get('motion_detected_count', 0)}")
             
@@ -338,7 +333,6 @@ class MotionDetector:
             
             # Close preview window
             if self.settings.display.show_preview:
-                import cv2
                 cv2.destroyAllWindows()
             
             # Log final statistics
@@ -353,17 +347,16 @@ class MotionDetector:
         """Log final system statistics."""
         try:
             uptime = time.time() - self.start_time
-            
+            average_fps = self.frame_count / uptime if uptime > 0 else 0
+
             # Get final statistics from all components
-            camera_stats = self.camera_manager.get_camera_info() if self.camera_manager else {}
-            processing_stats = self.image_processor.get_processing_statistics() if self.image_processor else {}
             file_stats = self.file_manager.get_file_statistics() if self.file_manager else {}
             motion_stats = self.motion_logger.get_statistics()
-            
+
             self.logger.info("=== FINAL STATISTICS ===")
             self.logger.info(f"Total uptime: {uptime:.1f} seconds")
             self.logger.info(f"Total frames processed: {self.frame_count}")
-            self.logger.info(f"Average FPS: {self.frame_count / uptime:.1f}")
+            self.logger.info(f"Average FPS: {average_fps:.1f}")
             self.logger.info(f"Motion detection events: {motion_stats.get('total_detections', 0)}")
             self.logger.info(f"Photos captured: {motion_stats.get('total_photos', 0)}")
             self.logger.info(f"Total files stored: {file_stats.get('total_files', 0)}")
@@ -385,7 +378,6 @@ class MotionDetector:
                 self.image_processor.cleanup()
             
             # Close OpenCV windows
-            import cv2
             cv2.destroyAllWindows()
             
             self.logger.info("System cleanup completed")
