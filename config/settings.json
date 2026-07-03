@@ -47,6 +47,7 @@
     "webhook_url": "",
     "telegram_bot_token": "",
     "telegram_chat_id": "",
+    "include_snapshot": true,
     "min_interval": 30.0
   }
 } 
