@@ -168,7 +168,7 @@ profile:
 docs:
 	@echo "📚 Generating documentation..."
 	mkdir -p docs/html
-	$(PYTHON) -m pdoc src/motion_detector --html --output-dir docs/html
+	$(PYTHON) -m pdoc src/motion_detector --html --force --output-dir docs/html
 	@echo "✅ Documentation generated in docs/html/"
 
 # Validation targets

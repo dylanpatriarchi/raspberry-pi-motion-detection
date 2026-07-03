@@ -73,6 +73,7 @@ setup(
             "black>=22.0.0",
             "flake8>=5.0.0",
             "mypy>=1.0.0",
+            "pdoc3>=0.10.0",
         ],
         "raspberry-pi": [
             "picamera2>=0.3.12",
@@ -89,6 +90,7 @@ setup(
             "black>=22.0.0",
             "flake8>=5.0.0",
             "mypy>=1.0.0",
+            "pdoc3>=0.10.0",
             "picamera2>=0.3.12",
             "RPi.GPIO>=0.7.1",
             "pillow>=9.0.0",
