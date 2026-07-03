@@ -118,10 +118,16 @@ The system uses a comprehensive JSON configuration system. Key settings include:
     "resolution": [640, 480],
     "framerate": 30,
     "warmup_time": 2.0,
-    "device_index": 0
+    "device_index": 0,
+    "backend": "auto"
   }
 }
 ```
+
+`backend` selects the capture source:
+- `auto` (default) — use `picamera2` when it is installed (Raspberry Pi Camera Module), otherwise OpenCV.
+- `opencv` — `cv2.VideoCapture` for USB / V4L2 webcams.
+- `picamera2` — force the Raspberry Pi Camera Module stack (requires `pip install '.[raspberry-pi]'`).
 
 ### Motion Detection
 ```json
@@ -130,10 +136,34 @@ The system uses a comprehensive JSON configuration system. Key settings include:
     "motion_threshold": 1000,
     "min_area": 500,
     "blur_kernel_size": 21,
-    "delta_threshold": 25
+    "delta_threshold": 25,
+    "regions": []
   }
 }
 ```
+
+`regions` is an optional list of `[x, y, width, height]` rectangles (in pixels). When set,
+motion is only detected inside those areas — useful for ignoring a busy road or a swaying
+tree. An empty list monitors the whole frame.
+
+### Notifications
+```json
+{
+  "notifications": {
+    "enabled": false,
+    "backend": "none",
+    "webhook_url": "",
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "min_interval": 30.0
+  }
+}
+```
+
+Send an alert when motion is detected. Set `backend` to `webhook` (HTTP POST of a JSON
+payload to `webhook_url`) or `telegram` (via the Bot API using `telegram_bot_token` and
+`telegram_chat_id`). `min_interval` throttles how often alerts are sent. No extra
+dependencies are required.
 
 ### Storage Settings
 ```json
