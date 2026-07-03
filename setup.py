@@ -32,16 +32,16 @@ if sys.platform.startswith("linux"):
 setup(
     name="raspberry-pi-motion-detection",
     version=version.get("__version__", "1.0.0"),
-    author=version.get("__author__", "Motion Detection Team"),
-    author_email=version.get("__email__", "contact@motiondetection.com"),
+    author=version.get("__author__", "Dylan Patriarchi"),
+    author_email=version.get("__email__", "dylanpatri04@gmail.com"),
     description=version.get("__description__", "Professional motion detection system for Raspberry Pi"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-username/raspberry-pi-motion-detection",
+    url="https://github.com/dylanpatriarchi/raspberry-pi-motion-detection",
     project_urls={
-        "Bug Tracker": "https://github.com/your-username/raspberry-pi-motion-detection/issues",
-        "Documentation": "https://github.com/your-username/raspberry-pi-motion-detection/wiki",
-        "Source Code": "https://github.com/your-username/raspberry-pi-motion-detection",
+        "Bug Tracker": "https://github.com/dylanpatriarchi/raspberry-pi-motion-detection/issues",
+        "Documentation": "https://github.com/dylanpatriarchi/raspberry-pi-motion-detection/wiki",
+        "Source Code": "https://github.com/dylanpatriarchi/raspberry-pi-motion-detection",
     },
     package_dir={"": "src"},
     packages=find_packages(where="src"),
@@ -99,8 +99,6 @@ setup(
     entry_points={
         "console_scripts": [
             "motion-detector=motion_detector.cli:main",
-            "motion-detector-config=motion_detector.config_tool:main",
-            "motion-detector-test=motion_detector.system_test:main",
         ],
     },
     include_package_data=True,
