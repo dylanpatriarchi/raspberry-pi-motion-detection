@@ -1,0 +1,32 @@
+# Version control
+.git/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+venv/
+.venv/
+.venv-*/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Runtime output (mounted as volumes instead)
+data/
+logs/
+backups/
+
+# Docs and IDE
+docs/html/
+.idea/
+.vscode/
+.DS_Store
