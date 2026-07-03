@@ -49,6 +49,7 @@ class CameraManager:
         self.max_consecutive_errors = 5
         self.last_error_time = 0
         self.error_recovery_delay = 5.0  # seconds
+        self.error_retry_delay = 0.1  # short backoff between failed reads
     
     def initialize(self) -> bool:
         """
@@ -164,14 +165,16 @@ class CameraManager:
             try:
                 if not self.camera or not self.camera.isOpened():
                     self._handle_camera_error("Camera not available in capture loop")
+                    self.stop_event.wait(self.error_retry_delay)
                     continue
-                
+
                 start_time = time.time()
                 ret, frame = self.camera.read()
                 capture_time = (time.time() - start_time) * 1000  # ms
-                
+
                 if not ret or frame is None:
                     self._handle_camera_error("Failed to capture frame")
+                    self.stop_event.wait(self.error_retry_delay)
                     continue
                 
                 # Update frame with thread safety
@@ -199,6 +202,7 @@ class CameraManager:
                 
             except Exception as e:
                 self._handle_camera_error(f"Capture loop error: {e}")
+                self.stop_event.wait(self.error_retry_delay)
     
     def get_frame(self) -> Optional[np.ndarray]:
         """
