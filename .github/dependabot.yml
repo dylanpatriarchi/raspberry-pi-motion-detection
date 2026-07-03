@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Python runtime and dev dependencies (requirements.txt + setup.py).
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - python
+
+  # Keep GitHub Actions in the CI/CodeQL workflows up to date.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - github-actions
