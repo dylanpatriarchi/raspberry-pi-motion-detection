@@ -59,15 +59,18 @@ test:
 	$(PYTHON) -m pytest tests/ -v --cov=src/motion_detector --cov-report=html
 	@echo "✅ Tests complete"
 
+LINT_PATHS ?= src tests scripts main.py setup.py
+
 lint:
 	@echo "🔍 Running linting checks..."
-	$(PYTHON) -m flake8 src/ tests/ --max-line-length=100
+	$(PYTHON) -m black --check --line-length=100 $(LINT_PATHS)
+	$(PYTHON) -m flake8 $(LINT_PATHS)
 	$(PYTHON) -m mypy src/motion_detector --ignore-missing-imports
 	@echo "✅ Linting complete"
 
 format:
 	@echo "🎨 Formatting code..."
-	$(PYTHON) -m black src/ tests/ --line-length=100
+	$(PYTHON) -m black --line-length=100 $(LINT_PATHS)
 	@echo "✅ Formatting complete"
 
 # Cleanup targets
