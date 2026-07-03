@@ -106,6 +106,10 @@ class SystemConfig:
 
     debug_mode: bool = False
     performance_monitoring: bool = False
+    # Only act on motion within this daily window (wraps across midnight).
+    active_hours_enabled: bool = False
+    active_start: str = "00:00"
+    active_end: str = "23:59"
 
 
 def create_default_config() -> dict:

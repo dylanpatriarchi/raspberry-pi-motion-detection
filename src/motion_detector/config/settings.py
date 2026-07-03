@@ -14,6 +14,7 @@ from .defaults import (
     VALID_NOTIFIERS,
     VALID_VIDEO_FORMATS,
 )
+from ..utils.schedule import parse_hhmm
 
 
 class Settings:
@@ -189,6 +190,11 @@ class Settings:
             valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
             if self.logging.level not in valid_log_levels:
                 raise ValueError(f"Log level must be one of {valid_log_levels}")
+
+            # Validate active-hours settings (parse_hhmm raises on bad format)
+            if self.system.active_hours_enabled:
+                parse_hhmm(self.system.active_start)
+                parse_hhmm(self.system.active_end)
 
             # Validate notification settings
             if self.notifications.backend not in VALID_NOTIFIERS:
