@@ -39,5 +39,13 @@
   "system": {
     "debug_mode": false,
     "performance_monitoring": false
+  },
+  "notifications": {
+    "enabled": false,
+    "backend": "none",
+    "webhook_url": "",
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "min_interval": 30.0
   }
 } 

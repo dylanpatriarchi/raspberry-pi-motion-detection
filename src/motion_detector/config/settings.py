@@ -8,7 +8,7 @@ import os
 from typing import Dict, Any, Optional
 import logging
 
-from .defaults import create_default_config, VALID_CAMERA_BACKENDS
+from .defaults import create_default_config, VALID_CAMERA_BACKENDS, VALID_NOTIFIERS
 
 
 class Settings:
@@ -43,6 +43,7 @@ class Settings:
         self.display = defaults["display"]
         self.logging = defaults["logging"]
         self.system = defaults["system"]
+        self.notifications = defaults["notifications"]
 
     def load_config(self) -> None:
         """Load configuration from file."""
@@ -104,6 +105,9 @@ class Settings:
         if "system" in config_data:
             self._update_dataclass(self.system, config_data["system"])
 
+        if "notifications" in config_data:
+            self._update_dataclass(self.notifications, config_data["notifications"])
+
     def _update_dataclass(self, dataclass_instance: Any, data: Dict[str, Any]) -> None:
         """Update dataclass instance with dictionary data."""
         for key, value in data.items():
@@ -119,6 +123,7 @@ class Settings:
             "display": self._dataclass_to_dict(self.display),
             "logging": self._dataclass_to_dict(self.logging),
             "system": self._dataclass_to_dict(self.system),
+            "notifications": self._dataclass_to_dict(self.notifications),
         }
 
     def _dataclass_to_dict(self, dataclass_instance: Any) -> Dict[str, Any]:
@@ -164,6 +169,23 @@ class Settings:
             valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
             if self.logging.level not in valid_log_levels:
                 raise ValueError(f"Log level must be one of {valid_log_levels}")
+
+            # Validate notification settings
+            if self.notifications.backend not in VALID_NOTIFIERS:
+                raise ValueError(f"Notification backend must be one of {list(VALID_NOTIFIERS)}")
+
+            if self.notifications.enabled:
+                if self.notifications.backend == "webhook" and not self.notifications.webhook_url:
+                    raise ValueError("Webhook notifications require a webhook_url")
+                if self.notifications.backend == "telegram" and not (
+                    self.notifications.telegram_bot_token and self.notifications.telegram_chat_id
+                ):
+                    raise ValueError(
+                        "Telegram notifications require telegram_bot_token and telegram_chat_id"
+                    )
+
+            if self.notifications.min_interval < 0:
+                raise ValueError("Notification min_interval cannot be negative")
 
             self.logger.info("Configuration validation successful")
             return True

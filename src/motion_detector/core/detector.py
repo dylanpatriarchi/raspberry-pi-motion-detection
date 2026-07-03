@@ -15,6 +15,7 @@ from .processor import ImageProcessor
 from ..config.settings import Settings
 from ..utils.logger import setup_logger, MotionDetectionLogger
 from ..utils.file_manager import FileManager
+from ..utils.notifier import NotificationManager
 from ..utils.validators import run_system_diagnostics
 
 
@@ -50,6 +51,7 @@ class MotionDetector:
         self.camera_manager: Optional[CameraManager] = None
         self.image_processor: Optional[ImageProcessor] = None
         self.file_manager: Optional[FileManager] = None
+        self.notifier: Optional[NotificationManager] = None
 
         # System state
         self.is_running = False
@@ -104,6 +106,11 @@ class MotionDetector:
 
             # Initialize file manager
             self.file_manager = FileManager(self.settings.storage.output_directory, self.logger)
+
+            # Initialize notification manager
+            self.notifier = NotificationManager(self.settings.notifications, self.logger)
+            if self.notifier.enabled:
+                self.logger.info(f"Notifications enabled via {self.notifier.backend_name}")
 
             # Initialize image processor
             self.image_processor = ImageProcessor(self.settings.detection, self.logger)
@@ -254,6 +261,10 @@ class MotionDetector:
 
             # Log photo saved
             self.motion_logger.log_photo_saved(filepath, file_size)
+
+            # Send notification (rate-limited internally)
+            if self.notifier is not None:
+                self.notifier.notify_motion(total_area, len(contours), filepath)
 
             # Update last photo time
             self.last_photo_time = current_time

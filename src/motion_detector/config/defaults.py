@@ -9,6 +9,9 @@ from typing import Tuple
 # Capture backends recognized by config validation and backend selection.
 VALID_CAMERA_BACKENDS = ("auto", "opencv", "picamera2")
 
+# Notification delivery backends recognized by config validation.
+VALID_NOTIFIERS = ("none", "webhook", "telegram")
+
 
 @dataclass
 class CameraConfig:
@@ -70,6 +73,20 @@ class LoggingConfig:
 
 
 @dataclass
+class NotificationConfig:
+    """Motion notification configuration settings."""
+
+    enabled: bool = False
+    # Delivery backend: "none", "webhook", or "telegram".
+    backend: str = "none"
+    webhook_url: str = ""
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+    # Minimum seconds between notifications, independent of photo capture.
+    min_interval: float = 30.0
+
+
+@dataclass
 class SystemConfig:
     """System-wide configuration settings."""
 
@@ -95,6 +112,7 @@ def create_default_config() -> dict:
         "display": DisplayConfig(),
         "logging": LoggingConfig(),
         "system": SystemConfig(),
+        "notifications": NotificationConfig(),
     }
 
 
