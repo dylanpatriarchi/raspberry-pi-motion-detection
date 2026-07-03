@@ -94,6 +94,8 @@ class NotificationConfig:
     webhook_url: str = ""
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+    # Attach the captured snapshot to the alert (Telegram sendPhoto).
+    include_snapshot: bool = True
     # Minimum seconds between notifications, independent of photo capture.
     min_interval: float = 30.0
 

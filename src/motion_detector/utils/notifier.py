@@ -15,11 +15,41 @@ detector only has to call :meth:`NotificationManager.notify_motion`.
 
 import json
 import logging
+import os
 import time
 import urllib.parse
 import urllib.request
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Tuple
+
+_MULTIPART_BOUNDARY = "----motiondetectorboundary7MA4YWxkTrZu0gW"
+
+
+def _encode_multipart(
+    fields: dict, file_field: str, filename: str, file_bytes: bytes
+) -> Tuple[bytes, str]:
+    """Build a multipart/form-data body for a file upload.
+
+    Returns the encoded body and the matching Content-Type header value.
+    """
+    boundary = _MULTIPART_BOUNDARY
+    parts = []
+    for name, value in fields.items():
+        parts.append(f"--{boundary}\r\n".encode())
+        parts.append(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode())
+        parts.append(f"{value}\r\n".encode())
+
+    parts.append(f"--{boundary}\r\n".encode())
+    parts.append(
+        f'Content-Disposition: form-data; name="{file_field}"; filename="{filename}"\r\n'.encode()
+    )
+    parts.append(b"Content-Type: application/octet-stream\r\n\r\n")
+    parts.append(file_bytes)
+    parts.append(f"\r\n--{boundary}--\r\n".encode())
+
+    body = b"".join(parts)
+    content_type = f"multipart/form-data; boundary={boundary}"
+    return body, content_type
 
 
 class Notifier(ABC):
@@ -32,8 +62,11 @@ class Notifier(ABC):
         self.timeout = timeout
 
     @abstractmethod
-    def send(self, title: str, message: str) -> bool:
-        """Deliver a notification. Return True on success."""
+    def send(self, title: str, message: str, image_path: Optional[str] = None) -> bool:
+        """Deliver a notification, optionally attaching an image.
+
+        Backends that cannot attach an image simply ignore ``image_path``.
+        """
 
     def _post(self, url: str, data: bytes, headers: dict) -> bool:
         """POST ``data`` to ``url``; return True on a 2xx response."""
@@ -54,7 +87,7 @@ class NullNotifier(Notifier):
 
     name = "none"
 
-    def send(self, title: str, message: str) -> bool:
+    def send(self, title: str, message: str, image_path: Optional[str] = None) -> bool:
         return True
 
 
@@ -67,8 +100,12 @@ class WebhookNotifier(Notifier):
         super().__init__(logger, timeout)
         self.url = url
 
-    def send(self, title: str, message: str) -> bool:
-        payload = json.dumps({"title": title, "message": message}).encode("utf-8")
+    def send(self, title: str, message: str, image_path: Optional[str] = None) -> bool:
+        # The snapshot path is included in the JSON; binary upload is left to
+        # the Telegram backend where the API is well defined.
+        payload = json.dumps(
+            {"title": title, "message": message, "snapshot": image_path}
+        ).encode("utf-8")
         return self._post(self.url, payload, {"Content-Type": "application/json"})
 
 
@@ -88,13 +125,30 @@ class TelegramNotifier(Notifier):
         self.bot_token = bot_token
         self.chat_id = chat_id
 
-    def send(self, title: str, message: str) -> bool:
+    def send(self, title: str, message: str, image_path: Optional[str] = None) -> bool:
+        if image_path and os.path.exists(image_path):
+            return self._send_photo(title, message, image_path)
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         data = urllib.parse.urlencode(
             {"chat_id": self.chat_id, "text": f"{title}\n{message}"}
         ).encode("utf-8")
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         return self._post(url, data, headers)
+
+    def _send_photo(self, title: str, message: str, image_path: str) -> bool:
+        url = f"https://api.telegram.org/bot{self.bot_token}/sendPhoto"
+        try:
+            with open(image_path, "rb") as fh:
+                image_bytes = fh.read()
+        except OSError as exc:
+            self.logger.warning(f"Could not read snapshot {image_path}: {exc}")
+            return False
+
+        fields = {"chat_id": self.chat_id, "caption": f"{title}\n{message}"}
+        body, content_type = _encode_multipart(
+            fields, "photo", os.path.basename(image_path), image_bytes
+        )
+        return self._post(url, body, {"Content-Type": content_type})
 
 
 def create_notifier(config, logger: Optional[logging.Logger] = None) -> Notifier:
@@ -129,6 +183,7 @@ class NotificationManager:
         self.logger = logger or logging.getLogger(__name__)
         self.enabled = bool(getattr(config, "enabled", False))
         self.min_interval = float(getattr(config, "min_interval", 30.0))
+        self.include_snapshot = bool(getattr(config, "include_snapshot", True))
         self._last_sent = 0.0
         self._notifier = create_notifier(config, self.logger) if self.enabled else NullNotifier()
 
@@ -153,10 +208,9 @@ class NotificationManager:
 
         title = "Motion detected"
         message = f"Area: {area:.0f}, contours: {contour_count}"
-        if filepath:
-            message += f", snapshot: {filepath}"
 
-        sent = self._notifier.send(title, message)
+        image_path = filepath if self.include_snapshot else None
+        sent = self._notifier.send(title, message, image_path)
         if sent:
             self._last_sent = now
         return sent
