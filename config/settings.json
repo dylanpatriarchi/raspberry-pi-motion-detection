@@ -39,7 +39,10 @@
   },
   "system": {
     "debug_mode": false,
-    "performance_monitoring": false
+    "performance_monitoring": false,
+    "active_hours_enabled": false,
+    "active_start": "00:00",
+    "active_end": "23:59"
   },
   "notifications": {
     "enabled": false,

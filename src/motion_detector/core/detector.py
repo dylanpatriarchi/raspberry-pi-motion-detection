@@ -16,6 +16,7 @@ from ..config.settings import Settings
 from ..utils.logger import setup_logger, MotionDetectionLogger
 from ..utils.file_manager import FileManager
 from ..utils.notifier import NotificationManager
+from ..utils.schedule import is_active_now
 from ..utils.validators import run_system_diagnostics
 
 
@@ -204,8 +205,8 @@ class MotionDetector:
                 # Process frame for motion detection
                 motion_detected, contours, diff_image = self.image_processor.detect_motion(frame)
 
-                # Handle motion detection
-                if motion_detected:
+                # Handle motion detection (only within active hours)
+                if motion_detected and is_active_now(self.settings.system):
                     self._handle_motion_detected(frame, contours)
 
                 # Update background
