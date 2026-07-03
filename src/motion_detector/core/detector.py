@@ -54,7 +54,7 @@ class MotionDetector:
         # System state
         self.is_running = False
         self.is_initialized = False
-        self.last_photo_time = 0
+        self.last_photo_time = 0.0
 
         # Performance monitoring
         self.start_time = time.time()
@@ -181,6 +181,9 @@ class MotionDetector:
         """Main detection loop."""
         self.logger.info("Motion detection system active - Press Ctrl+C to stop")
 
+        # Components are guaranteed initialized before the loop runs.
+        assert self.camera_manager and self.image_processor and self.file_manager
+
         try:
             while self.is_running:
                 # Get frame from camera
@@ -227,6 +230,7 @@ class MotionDetector:
 
     def _handle_motion_detected(self, frame, contours) -> None:
         """Handle motion detection event."""
+        assert self.file_manager is not None
         current_time = time.time()
 
         # Check if enough time has passed since last photo
@@ -259,6 +263,7 @@ class MotionDetector:
 
     def _display_preview(self, frame, contours, motion_detected) -> None:
         """Display preview window with motion detection overlay."""
+        assert self.image_processor is not None and self.camera_manager is not None
         try:
             display_frame = frame.copy()
 
@@ -300,6 +305,7 @@ class MotionDetector:
 
     def _log_performance_stats(self) -> None:
         """Log performance statistics."""
+        assert self.image_processor is not None
         try:
             uptime = time.time() - self.start_time
             fps = self.frame_count / uptime if uptime > 0 else 0

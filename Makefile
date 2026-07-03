@@ -65,7 +65,7 @@ lint:
 	@echo "🔍 Running linting checks..."
 	$(PYTHON) -m black --check --line-length=100 $(LINT_PATHS)
 	$(PYTHON) -m flake8 $(LINT_PATHS)
-	$(PYTHON) -m mypy src/motion_detector --ignore-missing-imports
+	$(PYTHON) -m mypy
 	@echo "✅ Linting complete"
 
 format:

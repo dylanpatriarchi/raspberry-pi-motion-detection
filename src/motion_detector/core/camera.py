@@ -48,7 +48,7 @@ class CameraManager:
         # Error recovery
         self.consecutive_errors = 0
         self.max_consecutive_errors = 5
-        self.last_error_time = 0
+        self.last_error_time = 0.0
         self.error_recovery_delay = 5.0  # seconds
         self.error_retry_delay = 0.1  # short backoff between failed reads
 

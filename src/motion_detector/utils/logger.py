@@ -81,7 +81,7 @@ class PerformanceLogger:
             logger: Base logger instance
         """
         self.logger = logger
-        self.metrics = {}
+        self.metrics: dict = {}
 
     def log_fps(self, fps: float) -> None:
         """Log frames per second."""

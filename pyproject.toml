@@ -21,7 +21,24 @@ show_missing = true
 skip_covered = true
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 ignore_missing_imports = true
-warn_unused_ignores = true
 warn_redundant_casts = true
+# Analyze our own package only; third-party libraries (some of which ship
+# stubs requiring a newer Python than we target) are not followed.
+files = ["src/motion_detector"]
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy",
+    "numpy.*",
+    "cv2",
+    "cv2.*",
+    "picamera2",
+    "picamera2.*",
+    "psutil",
+    "psutil.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
+follow_imports_for_stubs = true

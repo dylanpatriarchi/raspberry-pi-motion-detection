@@ -25,11 +25,13 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install lint tools
-        run: pip install black flake8
+        run: pip install black flake8 mypy
       - name: Check formatting (black)
         run: black --check --line-length=100 src tests scripts main.py setup.py
       - name: Lint (flake8)
         run: flake8 src tests scripts main.py setup.py
+      - name: Type-check (mypy)
+        run: mypy
 
   test:
     name: Test (Python ${{ matrix.python-version }})
