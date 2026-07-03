@@ -16,6 +16,7 @@ from ..config.settings import Settings
 from ..utils.logger import setup_logger, MotionDetectionLogger
 from ..utils.file_manager import FileManager
 from ..utils.notifier import NotificationManager
+from ..utils.video_recorder import VideoRecorder
 from ..utils.validators import run_system_diagnostics
 
 
@@ -52,6 +53,7 @@ class MotionDetector:
         self.image_processor: Optional[ImageProcessor] = None
         self.file_manager: Optional[FileManager] = None
         self.notifier: Optional[NotificationManager] = None
+        self.video_recorder: Optional[VideoRecorder] = None
 
         # System state
         self.is_running = False
@@ -111,6 +113,16 @@ class MotionDetector:
             self.notifier = NotificationManager(self.settings.notifications, self.logger)
             if self.notifier.enabled:
                 self.logger.info(f"Notifications enabled via {self.notifier.backend_name}")
+
+            # Initialize video recorder
+            if self.settings.storage.record_video:
+                self.video_recorder = VideoRecorder(
+                    self.settings.storage.output_directory,
+                    fps=self.settings.storage.video_fps,
+                    video_format=self.settings.storage.video_format,
+                    logger=self.logger,
+                )
+                self.logger.info("Video recording enabled")
 
             # Initialize image processor
             self.image_processor = ImageProcessor(self.settings.detection, self.logger)
@@ -265,6 +277,17 @@ class MotionDetector:
             # Send notification (rate-limited internally)
             if self.notifier is not None:
                 self.notifier.notify_motion(total_area, len(contours), filepath)
+
+            # Record a video clip in the background (skips if already recording)
+            if self.video_recorder is not None and self.camera_manager is not None:
+                video_name = self.file_manager.generate_filename(
+                    "motion", self.settings.storage.video_format
+                )
+                self.video_recorder.start_async(
+                    self.camera_manager.get_frame,
+                    self.settings.storage.video_duration,
+                    video_name,
+                )
 
             # Update last photo time
             self.last_photo_time = current_time
