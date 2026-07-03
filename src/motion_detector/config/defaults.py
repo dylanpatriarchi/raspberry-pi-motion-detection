@@ -15,6 +15,9 @@ VALID_NOTIFIERS = ("none", "webhook", "telegram")
 # Motion detection algorithms recognized by config validation.
 VALID_DETECTION_ALGORITHMS = ("frame_diff", "mog2", "knn")
 
+# Video container formats recognized by the recorder.
+VALID_VIDEO_FORMATS = ("avi", "mp4")
+
 
 @dataclass
 class CameraConfig:
@@ -57,6 +60,11 @@ class StorageConfig:
     photo_quality: int = 95
     max_photos: int = 1000  # Maximum photos to keep
     cleanup_enabled: bool = True
+    # Record a short video clip on motion, in addition to the snapshot.
+    record_video: bool = False
+    video_duration: float = 5.0
+    video_fps: int = 10
+    video_format: str = "avi"  # "avi" (MJPG) or "mp4" (mp4v)
 
 
 @dataclass
@@ -92,6 +100,8 @@ class NotificationConfig:
     webhook_url: str = ""
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+    # Attach the captured snapshot to the alert (Telegram sendPhoto).
+    include_snapshot: bool = True
     # Minimum seconds between notifications, independent of photo capture.
     min_interval: float = 30.0
 
@@ -102,6 +112,10 @@ class SystemConfig:
 
     debug_mode: bool = False
     performance_monitoring: bool = False
+    # Only act on motion within this daily window (wraps across midnight).
+    active_hours_enabled: bool = False
+    active_start: str = "00:00"
+    active_end: str = "23:59"
 
 
 def create_default_config() -> dict:

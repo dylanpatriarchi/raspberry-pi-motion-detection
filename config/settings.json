@@ -21,7 +21,11 @@
     "photo_format": "jpg",
     "photo_quality": 95,
     "max_photos": 1000,
-    "cleanup_enabled": true
+    "cleanup_enabled": true,
+    "record_video": false,
+    "video_duration": 5.0,
+    "video_fps": 10,
+    "video_format": "avi"
   },
   "display": {
     "show_preview": true,
@@ -40,7 +44,10 @@
   },
   "system": {
     "debug_mode": false,
-    "performance_monitoring": false
+    "performance_monitoring": false,
+    "active_hours_enabled": false,
+    "active_start": "00:00",
+    "active_end": "23:59"
   },
   "notifications": {
     "enabled": false,
@@ -48,6 +55,7 @@
     "webhook_url": "",
     "telegram_bot_token": "",
     "telegram_chat_id": "",
+    "include_snapshot": true,
     "min_interval": 30.0
   }
 } 

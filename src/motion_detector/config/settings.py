@@ -13,7 +13,9 @@ from .defaults import (
     VALID_CAMERA_BACKENDS,
     VALID_DETECTION_ALGORITHMS,
     VALID_NOTIFIERS,
+    VALID_VIDEO_FORMATS,
 )
+from ..utils.schedule import parse_hhmm
 
 
 class Settings:
@@ -181,10 +183,24 @@ class Settings:
             if self.storage.photo_quality < 1 or self.storage.photo_quality > 100:
                 raise ValueError("Photo quality must be between 1 and 100")
 
+            if self.storage.video_format not in VALID_VIDEO_FORMATS:
+                raise ValueError(f"Video format must be one of {list(VALID_VIDEO_FORMATS)}")
+
+            if self.storage.record_video:
+                if self.storage.video_duration <= 0:
+                    raise ValueError("Video duration must be positive")
+                if self.storage.video_fps <= 0:
+                    raise ValueError("Video fps must be positive")
+
             # Validate logging settings
             valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
             if self.logging.level not in valid_log_levels:
                 raise ValueError(f"Log level must be one of {valid_log_levels}")
+
+            # Validate active-hours settings (parse_hhmm raises on bad format)
+            if self.system.active_hours_enabled:
+                parse_hhmm(self.system.active_start)
+                parse_hhmm(self.system.active_end)
 
             # Validate notification settings
             if self.notifications.backend not in VALID_NOTIFIERS:
