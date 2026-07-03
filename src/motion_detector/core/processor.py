@@ -29,7 +29,13 @@ class ImageProcessor:
         self.logger = logger or logging.getLogger(__name__)
         self.performance_logger = PerformanceLogger(self.logger)
 
-        # Background subtraction
+        # Detection algorithm: "frame_diff" (default running-average diff) or an
+        # OpenCV background subtractor ("mog2" / "knn"), which adapt better to
+        # gradual lighting changes.
+        self.algorithm = getattr(config, "algorithm", "frame_diff")
+        self._bg_subtractor = self._create_subtractor(self.algorithm)
+
+        # Background subtraction (frame_diff mode)
         self.background_frame: Optional[np.ndarray] = None
         self.background_initialized = False
 
@@ -98,6 +104,10 @@ class ImageProcessor:
             frame: Current frame
             learning_rate: Learning rate for background update
         """
+        # Background subtractors maintain their own adaptive model internally.
+        if self._bg_subtractor is not None:
+            return
+
         if not self.background_initialized:
             self.initialize_background(frame)
             return
@@ -112,6 +122,23 @@ class ImageProcessor:
 
         except Exception as e:
             self.logger.error(f"Background update failed: {e}")
+
+    def _create_subtractor(self, algorithm: str):
+        """Create an OpenCV background subtractor, or None for frame_diff."""
+        try:
+            if algorithm == "mog2":
+                return cv2.createBackgroundSubtractorMOG2(detectShadows=True)
+            if algorithm == "knn":
+                return cv2.createBackgroundSubtractorKNN(detectShadows=True)
+        except Exception as e:
+            self.logger.error(f"Failed to create '{algorithm}' subtractor: {e}")
+        return None
+
+    def _subtractor_mask(self, processed_frame: np.ndarray) -> np.ndarray:
+        """Apply the background subtractor and drop shadow pixels."""
+        foreground = self._bg_subtractor.apply(processed_frame)
+        # Subtractors mark shadows as gray (127); keep only solid foreground.
+        return cv2.threshold(foreground, 200, 255, cv2.THRESH_BINARY)[1]
 
     def detect_motion(self, frame: np.ndarray) -> Tuple[bool, List[np.ndarray], np.ndarray]:
         """
@@ -129,18 +156,20 @@ class ImageProcessor:
             # Preprocess current frame
             processed_frame = self.preprocess_frame(frame)
 
-            # Initialize background if needed
-            if not self.background_initialized:
-                self.initialize_background(frame)
-                return False, [], processed_frame
+            # Produce a binary motion mask using the configured algorithm.
+            if self._bg_subtractor is not None:
+                thresh = self._subtractor_mask(processed_frame)
+            else:
+                # Initialize background if needed
+                if not self.background_initialized:
+                    self.initialize_background(frame)
+                    return False, [], processed_frame
 
-            # Calculate frame difference
-            frame_delta = cv2.absdiff(self.background_frame, processed_frame)
-
-            # Apply threshold to get binary image
-            thresh = cv2.threshold(
-                frame_delta, self.config.delta_threshold, 255, cv2.THRESH_BINARY
-            )[1]
+                # Calculate frame difference
+                frame_delta = cv2.absdiff(self.background_frame, processed_frame)
+                thresh = cv2.threshold(
+                    frame_delta, self.config.delta_threshold, 255, cv2.THRESH_BINARY
+                )[1]
 
             # Morphological operations to clean up the image
             kernel = np.ones((3, 3), np.uint8)

@@ -11,6 +11,7 @@ import logging
 from .defaults import (
     create_default_config,
     VALID_CAMERA_BACKENDS,
+    VALID_DETECTION_ALGORITHMS,
     VALID_NOTIFIERS,
     VALID_VIDEO_FORMATS,
 )
@@ -158,6 +159,11 @@ class Settings:
                 raise ValueError(f"Camera backend must be one of {list(VALID_CAMERA_BACKENDS)}")
 
             # Validate detection settings
+            if self.detection.algorithm not in VALID_DETECTION_ALGORITHMS:
+                raise ValueError(
+                    f"Detection algorithm must be one of {list(VALID_DETECTION_ALGORITHMS)}"
+                )
+
             if self.detection.motion_threshold <= 0:
                 raise ValueError("Motion threshold must be positive")
 
