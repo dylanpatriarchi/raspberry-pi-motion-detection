@@ -103,9 +103,9 @@ class WebhookNotifier(Notifier):
     def send(self, title: str, message: str, image_path: Optional[str] = None) -> bool:
         # The snapshot path is included in the JSON; binary upload is left to
         # the Telegram backend where the API is well defined.
-        payload = json.dumps(
-            {"title": title, "message": message, "snapshot": image_path}
-        ).encode("utf-8")
+        payload = json.dumps({"title": title, "message": message, "snapshot": image_path}).encode(
+            "utf-8"
+        )
         return self._post(self.url, payload, {"Content-Type": "application/json"})
 
 
