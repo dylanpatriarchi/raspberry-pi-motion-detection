@@ -8,7 +8,7 @@ import os
 from typing import Dict, Any, Optional
 import logging
 
-from .defaults import create_default_config
+from .defaults import create_default_config, VALID_CAMERA_BACKENDS
 
 
 class Settings:
@@ -142,6 +142,9 @@ class Settings:
 
             if self.camera.framerate <= 0:
                 raise ValueError("Camera framerate must be positive")
+
+            if self.camera.backend not in VALID_CAMERA_BACKENDS:
+                raise ValueError(f"Camera backend must be one of {list(VALID_CAMERA_BACKENDS)}")
 
             # Validate detection settings
             if self.detection.motion_threshold <= 0:

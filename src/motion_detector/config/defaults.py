@@ -6,6 +6,9 @@ Default settings for the motion detection system.
 from dataclasses import dataclass
 from typing import Tuple
 
+# Capture backends recognized by config validation and backend selection.
+VALID_CAMERA_BACKENDS = ("auto", "opencv", "picamera2")
+
 
 @dataclass
 class CameraConfig:
@@ -15,6 +18,9 @@ class CameraConfig:
     framerate: int = 30
     warmup_time: float = 2.0
     device_index: int = 0
+    # Capture backend: "auto" (picamera2 if available, else OpenCV),
+    # "opencv" (USB/V4L2), or "picamera2" (Raspberry Pi Camera Module).
+    backend: str = "auto"
 
 
 @dataclass

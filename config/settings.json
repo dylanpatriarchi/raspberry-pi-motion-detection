@@ -3,7 +3,8 @@
     "resolution": [640, 480],
     "framerate": 30,
     "warmup_time": 2.0,
-    "device_index": 0
+    "device_index": 0,
+    "backend": "auto"
   },
   "detection": {
     "motion_threshold": 1000,

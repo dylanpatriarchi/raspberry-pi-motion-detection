@@ -11,6 +11,7 @@ import logging
 import numpy as np
 
 from ..utils.logger import PerformanceLogger, MotionDetectionLogger
+from .camera_backends import CaptureBackend, create_backend
 
 
 class CameraManager:
@@ -31,7 +32,7 @@ class CameraManager:
         self.performance_logger = PerformanceLogger(self.logger)
         self.motion_logger = MotionDetectionLogger(self.logger)
 
-        self.camera: Optional[cv2.VideoCapture] = None
+        self.backend: Optional[CaptureBackend] = None
         self.is_initialized = False
         self.is_streaming = False
         self.frame_count = 0
@@ -63,14 +64,9 @@ class CameraManager:
                 "Initializing camera", f"device {self.config.device_index}"
             )
 
-            # Create camera object
-            self.camera = cv2.VideoCapture(self.config.device_index)
-
-            if not self.camera.isOpened():
-                raise RuntimeError(f"Cannot open camera device {self.config.device_index}")
-
-            # Configure camera properties
-            self._configure_camera()
+            # Create and open the configured capture backend.
+            self.backend = create_backend(self.config, self.logger)
+            self.backend.open()
 
             # Warmup period
             if self.config.warmup_time > 0:
@@ -78,7 +74,7 @@ class CameraManager:
                 time.sleep(self.config.warmup_time)
 
             # Test frame capture
-            ret, test_frame = self.camera.read()
+            ret, test_frame = self.backend.read()
             if not ret or test_frame is None:
                 raise RuntimeError("Cannot capture test frame")
 
@@ -86,12 +82,12 @@ class CameraManager:
             self.consecutive_errors = 0
 
             # Log camera info
-            actual_width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-            actual_height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            actual_fps = self.camera.get(cv2.CAP_PROP_FPS)
-
+            info = self.backend.describe()
+            width, height = info.get("resolution", (0, 0))
+            fps = info.get("fps", 0.0)
             self.motion_logger.log_camera_event(
-                "Camera initialized", f"{actual_width}x{actual_height} @ {actual_fps:.1f}fps"
+                "Camera initialized",
+                f"{width}x{height} @ {fps:.1f}fps ({self.backend.name})",
             )
 
             return True
@@ -100,24 +96,6 @@ class CameraManager:
             self.logger.error(f"Camera initialization failed: {e}")
             self.is_initialized = False
             return False
-
-    def _configure_camera(self) -> None:
-        """Configure camera properties."""
-        if not self.camera:
-            return
-
-        # Set resolution
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.resolution[0])
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.resolution[1])
-
-        # Set framerate
-        self.camera.set(cv2.CAP_PROP_FPS, self.config.framerate)
-
-        # Set buffer size to reduce latency
-        self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-        # Additional optimizations
-        self.camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
 
     def start_streaming(self) -> bool:
         """
@@ -164,13 +142,13 @@ class CameraManager:
         """Main capture loop running in separate thread."""
         while not self.stop_event.is_set():
             try:
-                if not self.camera or not self.camera.isOpened():
+                if not self.backend or not self.backend.is_opened():
                     self._handle_camera_error("Camera not available in capture loop")
                     self.stop_event.wait(self.error_retry_delay)
                     continue
 
                 start_time = time.time()
-                ret, frame = self.camera.read()
+                ret, frame = self.backend.read()
                 capture_time = (time.time() - start_time) * 1000  # ms
 
                 if not ret or frame is None:
@@ -225,11 +203,11 @@ class CameraManager:
 
     def _capture_single_frame(self) -> Optional[np.ndarray]:
         """Capture single frame directly from camera."""
-        if not self.camera or not self.camera.isOpened():
+        if not self.backend or not self.backend.is_opened():
             return None
 
         try:
-            ret, frame = self.camera.read()
+            ret, frame = self.backend.read()
             if ret and frame is not None:
                 self.frame_count += 1
                 return frame
@@ -256,8 +234,9 @@ class CameraManager:
             self.motion_logger.log_camera_event("Attempting recovery")
 
             # Release current camera
-            if self.camera:
-                self.camera.release()
+            if self.backend:
+                self.backend.release()
+                self.backend = None
                 time.sleep(1.0)
 
             # Wait before recovery attempt
@@ -281,26 +260,20 @@ class CameraManager:
         Returns:
             dict: Camera information and statistics
         """
-        if not self.camera:
+        if not self.backend:
             return {}
 
         try:
+            info = self.backend.describe()
             return {
                 "device_index": self.config.device_index,
-                "resolution": (
-                    int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                    int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                ),
-                "fps": self.camera.get(cv2.CAP_PROP_FPS),
+                "resolution": info.get("resolution"),
+                "fps": info.get("fps"),
                 "is_initialized": self.is_initialized,
                 "is_streaming": self.is_streaming,
                 "frame_count": self.frame_count,
                 "consecutive_errors": self.consecutive_errors,
-                "backend": (
-                    self.camera.getBackendName()
-                    if hasattr(self.camera, "getBackendName")
-                    else "Unknown"
-                ),
+                "backend": info.get("backend", self.backend.name),
             }
         except Exception as e:
             self.logger.error(f"Failed to get camera info: {e}")
@@ -322,9 +295,9 @@ class CameraManager:
             self.stop_streaming()
 
             # Release camera
-            if self.camera:
-                self.camera.release()
-                self.camera = None
+            if self.backend:
+                self.backend.release()
+                self.backend = None
 
             # Reset state
             self.is_initialized = False
