@@ -30,10 +30,8 @@ class DetectionConfig:
     motion_threshold: int = 1000
     min_area: int = 500
     blur_kernel_size: int = 21
-    threshold_value: int = 25
     delta_threshold: int = 25
     dilate_iterations: int = 2
-    contour_approximation: float = 0.02
 
 
 @dataclass
@@ -77,8 +75,6 @@ class SystemConfig:
 
     debug_mode: bool = False
     performance_monitoring: bool = False
-    auto_cleanup: bool = True
-    graceful_shutdown_timeout: float = 10.0
 
 
 def create_default_config() -> dict:

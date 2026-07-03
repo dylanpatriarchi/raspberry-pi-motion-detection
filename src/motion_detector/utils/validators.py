@@ -43,8 +43,8 @@ def validate_config(config) -> Tuple[bool, List[str]]:
     if config.detection.blur_kernel_size <= 0 or config.detection.blur_kernel_size % 2 == 0:
         errors.append("Blur kernel size must be positive and odd")
 
-    if config.detection.threshold_value < 0 or config.detection.threshold_value > 255:
-        errors.append("Threshold value must be between 0 and 255")
+    if config.detection.delta_threshold < 0 or config.detection.delta_threshold > 255:
+        errors.append("Delta threshold must be between 0 and 255")
 
     # Validate storage configuration
     if config.storage.photo_delay < 0:

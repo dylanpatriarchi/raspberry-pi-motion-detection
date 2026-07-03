@@ -10,10 +10,8 @@
     "motion_threshold": 1000,
     "min_area": 500,
     "blur_kernel_size": 21,
-    "threshold_value": 25,
     "delta_threshold": 25,
-    "dilate_iterations": 2,
-    "contour_approximation": 0.02
+    "dilate_iterations": 2
   },
   "storage": {
     "output_directory": "data/captured_images",
@@ -40,8 +38,6 @@
   },
   "system": {
     "debug_mode": false,
-    "performance_monitoring": false,
-    "auto_cleanup": true,
-    "graceful_shutdown_timeout": 10.0
+    "performance_monitoring": false
   }
 } 
